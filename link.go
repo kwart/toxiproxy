@@ -184,21 +184,31 @@ func (link *ToxicLink) UpdateToxic(toxic *toxics.ToxicWrapper) {
 // Remove an existing toxic from the chain.
 func (link *ToxicLink) RemoveToxic(toxic *toxics.ToxicWrapper) {
 	i := toxic.Index
+	logrus.Info("LINK REMOVE_TOXIC 1 ", i, link)
 
 	if link.stubs[i].InterruptToxic() {
+		logrus.Info("LINK REMOVE_TOXIC 2 ", i, link)
 		cleanup, ok := toxic.Toxic.(toxics.CleanupToxic)
 		if ok {
+			logrus.Info("LINK REMOVE_TOXIC 3 ", i, link)
 			cleanup.Cleanup(link.stubs[i])
 			// Cleanup could have closed the stub.
+			logrus.Info("LINK REMOVE_TOXIC 4 ", i, link)
 			if link.stubs[i].Closed() {
+				logrus.Info("LINK REMOVE_TOXIC RETURN A", i, link)
 				return
 			}
 		}
 
+		logrus.Info("LINK REMOVE_TOXIC 6 ", i, link)
 		stop := make(chan bool)
 		// Interrupt the previous toxic to update its output
+		logrus.Info("LINK REMOVE_TOXIC 7 ", i, link)
 		go func() {
+			logrus.Info("LINK REMOVE_TOXIC 8 ", i, link)
 			stop <- link.stubs[i-1].InterruptToxic()
+			logrus.Info("LINK REMOVE_TOXIC 9 ", i, link)
+
 		}()
 
 		// Unblock the previous toxic if it is trying to flush
@@ -206,6 +216,7 @@ func (link *ToxicLink) RemoveToxic(toxic *toxics.ToxicWrapper) {
 		interrupted := false
 		stopped := false
 		for !interrupted {
+			logrus.Info("LINK REMOVE_TOXIC !INTERRUPTED ", i, link)
 			select {
 			case interrupted = <-stop:
 				stopped = true
@@ -215,27 +226,36 @@ func (link *ToxicLink) RemoveToxic(toxic *toxics.ToxicWrapper) {
 					if !stopped {
 						<-stop
 					}
+					logrus.Info("LINK REMOVE_TOXIC RETURN B", i, link)
 					return
 				}
 				link.stubs[i].Output <- tmp
 			}
 		}
+		logrus.Info("LINK REMOVE_TOXIC 10 ", i, link)
 
 		// Empty the toxic's buffer if necessary
 		for len(link.stubs[i].Input) > 0 {
+			logrus.Info("LINK REMOVE_TOXIC LEN>0 ", i, len(link.stubs[i].Input))
 			tmp := <-link.stubs[i].Input
 			if tmp == nil {
 				link.stubs[i].Close()
+				logrus.Info("LINK REMOVE_TOXIC RETURN C", i, link)
 				return
 			}
 			link.stubs[i].Output <- tmp
 		}
+		logrus.Info("LINK REMOVE_TOXIC 11 ", i, link)
 
 		link.stubs[i-1].Output = link.stubs[i].Output
 		link.stubs = append(link.stubs[:i], link.stubs[i+1:]...)
+		logrus.Info("LINK REMOVE_TOXIC 12 ", i, link)
 
 		go link.stubs[i-1].Run(link.toxics.chain[link.direction][i-1])
+		logrus.Info("LINK REMOVE_TOXIC 13 ", i, link)
+
 	}
+	logrus.Info("LINK REMOVE_TOXIC RETURN Z", i, link)
 }
 
 // Direction returns the direction of the link (upstream or downstream).

@@ -6,5 +6,5 @@ CMD ["-host=0.0.0.0"]
 
 ENV LOG_LEVEL=info
 
-COPY toxiproxy-server-linux-* /toxiproxy
-COPY toxiproxy-cli-linux-* /toxiproxy-cli
+COPY dist/toxiproxy-server /toxiproxy
+COPY dist/toxiproxy-cli /toxiproxy-cli

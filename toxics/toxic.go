@@ -1,6 +1,7 @@
 package toxics
 
 import (
+	"fmt"
 	"math/rand"
 	"reflect"
 	"sync"
@@ -92,9 +93,12 @@ func (s *ToxicStub) Run(toxic *ToxicWrapper) {
 func (s *ToxicStub) InterruptToxic() bool {
 	select {
 	case <-s.closed:
+		fmt.Println("INTERRUPT_TOXIC CLOSED ", s)
 		return false
 	case s.Interrupt <- struct{}{}:
+		fmt.Println("INTERRUPT_TOXIC WAIT ", s)
 		<-s.running // Wait for the running toxic to exit
+		fmt.Println("INTERRUPT_TOXIC WAIT-FINISHED ", s)
 		return true
 	}
 }

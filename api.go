@@ -318,6 +318,7 @@ func (server *ApiServer) ToxicCreate(response http.ResponseWriter, request *http
 }
 
 func (server *ApiServer) ToxicShow(response http.ResponseWriter, request *http.Request) {
+	logrus.Warn("GET XXX")
 	vars := mux.Vars(request)
 
 	proxy, err := server.Collection.Get(vars["proxy"])
@@ -330,6 +331,7 @@ func (server *ApiServer) ToxicShow(response http.ResponseWriter, request *http.R
 		apiError(response, ErrToxicNotFound)
 		return
 	}
+	logrus.Warn("GET YYY")
 
 	data, err := json.Marshal(toxic)
 	if apiError(response, err) {
@@ -369,20 +371,26 @@ func (server *ApiServer) ToxicUpdate(response http.ResponseWriter, request *http
 }
 
 func (server *ApiServer) ToxicDelete(response http.ResponseWriter, request *http.Request) {
+	fmt.Println("DELETE 1")
+
 	vars := mux.Vars(request)
 
+	fmt.Println("DELETE 2", vars["proxy"])
 	proxy, err := server.Collection.Get(vars["proxy"])
 	if apiError(response, err) {
 		return
 	}
 
+	fmt.Println("DELETE 3", vars["toxic"])
 	err = proxy.Toxics.RemoveToxic(vars["toxic"])
 	if apiError(response, err) {
 		return
 	}
 
+	fmt.Println("DELETE 4")
 	response.WriteHeader(http.StatusNoContent)
 	_, err = response.Write(nil)
+	fmt.Println("DELETE 5")
 	if err != nil {
 		logrus.Warn("ToxicDelete: Failed to write headers to client", err)
 	}

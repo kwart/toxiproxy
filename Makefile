@@ -42,8 +42,8 @@ lint:
 
 .PHONY: build
 build: dist clean
-	go build -ldflags="-s -w" -o ./dist/toxiproxy-server ./cmd/server
-	go build -ldflags="-s -w" -o ./dist/toxiproxy-cli ./cmd/cli
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o ./dist/toxiproxy-server ./cmd/server
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o ./dist/toxiproxy-cli ./cmd/cli
 
 .PHONY: release
 release:

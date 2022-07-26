@@ -164,11 +164,15 @@ func (c *ToxicCollection) RemoveToxic(name string) error {
 	c.Lock()
 	defer c.Unlock()
 
+	fmt.Println("REMOVETOXIC 1", name)
 	toxic := c.findToxicByName(name)
+	fmt.Println("REMOVETOXIC 2", toxic)
 	if toxic != nil {
 		c.chainRemoveToxic(toxic)
+		fmt.Println("REMOVETOXIC 3")
 		return nil
 	}
+	fmt.Println("REMOVETOXIC NOTFOUND")
 	return ErrToxicNotFound
 }
 
@@ -247,23 +251,33 @@ func (c *ToxicCollection) chainUpdateToxic(toxic *toxics.ToxicWrapper) {
 
 func (c *ToxicCollection) chainRemoveToxic(toxic *toxics.ToxicWrapper) {
 	dir := toxic.Direction
+	fmt.Println("CHAIN_REMOVE 1", dir)
 	c.chain[dir] = append(c.chain[dir][:toxic.Index], c.chain[dir][toxic.Index+1:]...)
+	fmt.Println("CHAIN_REMOVE 2")
 	for i := toxic.Index; i < len(c.chain[dir]); i++ {
+		fmt.Println("CHAIN_REMOVE 3", i)
 		c.chain[dir][i].Index = i
 	}
 
+	fmt.Println("CHAIN_REMOVE 4")
 	// Asynchronously remove the toxic from each link
 	group := sync.WaitGroup{}
+	fmt.Println("CHAIN_REMOVE 5")
 	for _, link := range c.links {
 		if link.direction == dir {
+			fmt.Println("CHAIN_REMOVE 6", link)
 			group.Add(1)
 			go func(link *ToxicLink) {
+				fmt.Println("CHAIN_REMOVE 7", link)
 				defer group.Done()
 				link.RemoveToxic(toxic)
+				fmt.Println("CHAIN_REMOVE 8", link)
 			}(link)
 		}
 	}
+	fmt.Println("CHAIN_REMOVE 9", group)
 	group.Wait()
+	fmt.Println("CHAIN_REMOVE 10", group)
 
 	toxic.Index = -1
 }
