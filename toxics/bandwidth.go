@@ -1,6 +1,7 @@
 package toxics
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Shopify/toxiproxy/v2/stream"
@@ -14,9 +15,12 @@ type BandwidthToxic struct {
 
 func (t *BandwidthToxic) Pipe(stub *ToxicStub) {
 	var sleep time.Duration = 0
+	fmt.Println("BANDWITH_PIPE ENTERED ", stub)
+	defer fmt.Println("BANDWITH_PIPE EXITED ", stub)
 	for {
 		select {
 		case <-stub.Interrupt:
+			fmt.Println("BANDWITH_PIPE INTERRUPT 1 ", stub)
 			return
 		case p := <-stub.Input:
 			if p == nil {
@@ -39,7 +43,9 @@ func (t *BandwidthToxic) Pipe(stub *ToxicStub) {
 					p.Data = p.Data[t.Rate*100:]
 					sleep -= 100 * time.Millisecond
 				case <-stub.Interrupt:
+					fmt.Println("BANDWITH_PIPE INTERRUPT 2 ", stub)
 					stub.Output <- p // Don't drop any data on the floor
+					fmt.Println("BANDWITH_PIPE INTERRUPT 2B ", stub)
 					return
 				}
 			}
@@ -50,7 +56,9 @@ func (t *BandwidthToxic) Pipe(stub *ToxicStub) {
 				sleep -= time.Since(start)
 				stub.Output <- p
 			case <-stub.Interrupt:
+				fmt.Println("BANDWITH_PIPE INTERRUPT 3 ", stub)
 				stub.Output <- p // Don't drop any data on the floor
+				fmt.Println("BANDWITH_PIPE INTERRUPT 3B ", stub)
 				return
 			}
 		}
